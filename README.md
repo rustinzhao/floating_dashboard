@@ -34,17 +34,19 @@ Open `http://localhost:4200`.
 - `GET /api/health`
 - `GET /api/dashboard`
 - `GET /api/atqs/{atq_id}/active-ticket`
+- `GET /api/atqs/{atq_id}/tickets`
 
-The frontend calls the active ticket endpoint when hovering an ATQ row.
-The first table column labels each row's domain. ATQ and Target cells show explanatory tooltips; Classic and LE result cells show active-ticket status.
+The frontend calls the ticket bundle endpoint when opening a tooltip. Every tooltip can show the ATQ's master ticket plus an optional child ticket.
+The first table column labels each row's domain. ATQ and Target cells show explanatory tooltips; Classic and LE result cells show ticket context for the selected KPI.
 
 Rows are sorted client-side by action priority:
 
-1. failing ATQs with no active ticket
-2. failing ATQs with an active ticket
-3. non-failing rows
+1. failing ATQs with no child ticket
+2. failing ATQs with a child ticket already active
+3. ATQs with no data
+4. non-failing rows
 
-The mock API returns different results and ticket ownership for each build version so the sorting behavior can be tested locally.
+The mock API returns different results, master tickets, and child tickets for each build version so the sorting behavior can be tested locally.
 
 ## BigQuery Hook
 

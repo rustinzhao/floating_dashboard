@@ -10,6 +10,7 @@ from .models import (
     Overview,
     ResultMetric,
     SummaryMetric,
+    TicketBundle,
 )
 
 
@@ -20,15 +21,21 @@ class DashboardRepository(Protocol):
     def get_active_ticket(self, atq_id: str, filters: DashboardFilters) -> ActiveTicket | None:
         ...
 
+    def get_ticket_bundle(self, atq_id: str, filters: DashboardFilters) -> TicketBundle:
+        ...
+
 
 class MockDashboardRepository:
     build_versions = ["release_5.203", "release_5.202", "release_5.201"]
 
     def get_dashboard(self, filters: DashboardFilters) -> DashboardResponse:
         build_version = self._build_version(filters)
-        tickets = self._tickets_for_release(build_version)
+        child_tickets = self._child_tickets_for_release(build_version)
         rows = [
-            row.model_copy(update={"hasActiveTicket": row.id in tickets})
+            row.model_copy(update={
+                "hasActiveTicket": row.id in child_tickets,
+                "hasChildTicket": row.id in child_tickets,
+            })
             for row in self._rows_for_release(build_version)
         ]
 
@@ -43,7 +50,18 @@ class MockDashboardRepository:
         )
 
     def get_active_ticket(self, atq_id: str, filters: DashboardFilters) -> ActiveTicket | None:
-        return self._tickets_for_release(self._build_version(filters)).get(atq_id)
+        return self._child_tickets_for_release(self._build_version(filters)).get(atq_id)
+
+    def get_ticket_bundle(self, atq_id: str, filters: DashboardFilters) -> TicketBundle:
+        build_version = self._build_version(filters)
+        row = next((item for item in self._rows_for_release(build_version) if item.id == atq_id), None)
+        if row is None:
+            row = next(item for item in self._base_rows() if item.id == atq_id)
+
+        return TicketBundle(
+            masterTicket=self._master_ticket_for_row(row, build_version),
+            childTicket=self._child_tickets_for_release(build_version).get(atq_id),
+        )
 
     def _build_version(self, filters: DashboardFilters) -> str:
         if filters.build_version in self.build_versions:
@@ -238,7 +256,25 @@ class MockDashboardRepository:
             ],
         )
 
-    def _tickets_for_release(self, build_version: str) -> dict[str, ActiveTicket]:
+    def _master_ticket_for_row(self, row: AtqRow, build_version: str) -> ActiveTicket:
+        ticket_suffix = row.code.replace("ATQ ", "").replace(".", "")
+        owner_by_domain = {
+            "Audio": "audio-runtime",
+            "Connectivity": "bt-platform",
+            "Pairing": "pairing-ui",
+            "Power": "power-audio",
+        }
+
+        return ActiveTicket(
+            ticketId=f"ATQMASTER-{ticket_suffix}",
+            title=f"{row.code} {build_version} certification tracking",
+            status="Open",
+            owner=owner_by_domain.get(row.domain, "atq-triage"),
+            queue=f"{row.domain} ATQ",
+            updatedAt="Today",
+        )
+
+    def _child_tickets_for_release(self, build_version: str) -> dict[str, ActiveTicket]:
         common = {
             "atq-9-9": ActiveTicket(
                 ticketId="ATQBUG-1842",
@@ -376,6 +412,7 @@ class BigQueryDashboardRepository:
                 target=row.target,
                 targetExplanation=row.target_explanation,
                 hasActiveTicket=bool(row.has_active_ticket),
+                hasChildTicket=bool(row.has_active_ticket),
                 classic=ResultMetric(label=row.classic_label, value=row.classic_value, status=row.classic_status),
                 le=ResultMetric(label=row.le_label, value=row.le_value, status=row.le_status),
             )
@@ -430,6 +467,20 @@ class BigQueryDashboardRepository:
             owner=row.active_ticket_owner,
             queue=row.active_ticket_queue,
             updatedAt=str(row.active_ticket_updated_at),
+        )
+
+    def get_ticket_bundle(self, atq_id: str, filters: DashboardFilters) -> TicketBundle:
+        if not self.table:
+            return self._fallback.get_ticket_bundle(atq_id, filters)
+
+        payload = self.get_dashboard(filters)
+        row = next((item for item in payload.rows if item.id == atq_id), None)
+        if row is None:
+            return self._fallback.get_ticket_bundle(atq_id, filters)
+
+        return TicketBundle(
+            masterTicket=self._fallback._master_ticket_for_row(row, self._fallback._build_version(filters)),
+            childTicket=self.get_active_ticket(atq_id, filters),
         )
 
 

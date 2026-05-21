@@ -32,6 +32,7 @@ class AtqRow(BaseModel):
     target: str
     targetExplanation: str
     hasActiveTicket: bool = False
+    hasChildTicket: bool = False
     classic: ResultMetric
     le: ResultMetric
 
@@ -60,3 +61,8 @@ class ActiveTicket(BaseModel):
     owner: str
     queue: str
     updatedAt: str
+
+
+class TicketBundle(BaseModel):
+    masterTicket: ActiveTicket
+    childTicket: ActiveTicket | None = None

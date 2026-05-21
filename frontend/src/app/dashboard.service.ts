@@ -28,6 +28,7 @@ export interface AtqRow {
   target: string;
   targetExplanation: string;
   hasActiveTicket: boolean;
+  hasChildTicket: boolean;
   classic: ResultMetric;
   le: ResultMetric;
 }
@@ -54,6 +55,11 @@ export interface ActiveTicket {
   updatedAt: string;
 }
 
+export interface TicketBundle {
+  masterTicket: ActiveTicket;
+  childTicket: ActiveTicket | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly http = inject(HttpClient);
@@ -67,6 +73,12 @@ export class DashboardService {
 
   getActiveTicket(atqId: string, filters: DashboardFilters): Observable<ActiveTicket | null> {
     return this.http.get<ActiveTicket | null>(`${this.apiBase}/atqs/${atqId}/active-ticket`, {
+      params: this.toParams(filters),
+    });
+  }
+
+  getTicketBundle(atqId: string, filters: DashboardFilters): Observable<TicketBundle> {
+    return this.http.get<TicketBundle>(`${this.apiBase}/atqs/${atqId}/tickets`, {
       params: this.toParams(filters),
     });
   }

@@ -8,6 +8,7 @@ import {
   DashboardFilters,
   DashboardPayload,
   DashboardService,
+  TicketBundle,
 } from './dashboard.service';
 
 type HoverKind = 'atq' | 'target' | 'ticket';
@@ -18,7 +19,7 @@ interface HoverState {
   row: AtqRow;
   title: string;
   body?: string;
-  ticket: ActiveTicket | null;
+  tickets: TicketBundle | null;
   loading: boolean;
   pinned: boolean;
   pinning: boolean;
@@ -111,14 +112,15 @@ export class AppComponent implements OnInit {
       row,
       title: `${row.code} explanation`,
       body: row.atqExplanation,
-      ticket: null,
-      loading: false,
+      tickets: null,
+      loading: true,
       pinned: pinImmediately,
       pinning: !pinImmediately,
       x: position.x,
       y: position.y,
     });
     this.startPinTimer(sourceKey, pinImmediately);
+    this.loadTickets(sourceKey, row);
   }
 
   showTargetInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
@@ -135,14 +137,15 @@ export class AppComponent implements OnInit {
       row,
       title: `Target for ${row.code}`,
       body: row.targetExplanation,
-      ticket: null,
-      loading: false,
+      tickets: null,
+      loading: true,
       pinned: pinImmediately,
       pinning: !pinImmediately,
       x: position.x,
       y: position.y,
     });
     this.startPinTimer(sourceKey, pinImmediately);
+    this.loadTickets(sourceKey, row);
   }
 
   showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE', pinImmediately = false): void {
@@ -158,7 +161,7 @@ export class AppComponent implements OnInit {
       kind: 'ticket',
       row,
       title: `${resultName} ticket status`,
-      ticket: null,
+      tickets: null,
       loading: true,
       pinned: pinImmediately,
       pinning: !pinImmediately,
@@ -167,27 +170,7 @@ export class AppComponent implements OnInit {
       y: position.y,
     });
     this.startPinTimer(sourceKey, pinImmediately);
-
-    this.dashboardService.getActiveTicket(row.id, this.filters).subscribe({
-      next: (ticket) => {
-        const current = this.hoverDetail();
-        if (current?.sourceKey !== sourceKey) {
-          return;
-        }
-
-        this.hoverDetail.set({
-          ...current,
-          ticket,
-          loading: false,
-        });
-      },
-      error: () => {
-        const current = this.hoverDetail();
-        if (current?.sourceKey === sourceKey) {
-          this.hoverDetail.set({ ...current, ticket: null, loading: false });
-        }
-      },
-    });
+    this.loadTickets(sourceKey, row);
   }
 
   moveTooltip(event: MouseEvent): void {
@@ -254,12 +237,14 @@ export class AppComponent implements OnInit {
     return `https://issuetracker.google.com/issues?q=${encodeURIComponent(ticket.ticketId)}`;
   }
 
-  newTicketUrl(hover: HoverState): string {
-    const title = `${hover.row.code} ${hover.resultName ?? ''} follow-up`.trim();
+  newChildTicketUrl(hover: HoverState): string {
+    const masterTicket = hover.tickets?.masterTicket;
+    const title = `${hover.row.code} ${hover.resultName ?? ''} child follow-up`.trim();
     const details = [
       `ATQ: ${hover.row.code}`,
       `Domain: ${hover.row.domain}`,
       `Build: ${this.filters.buildVersion}`,
+      masterTicket ? `Master ticket: ${masterTicket.ticketId}` : '',
       hover.resultName ? `Result: ${hover.resultName}` : '',
       `Status: ${this.rowStatusLabel(hover.row)}`,
     ].filter(Boolean).join('\n');
@@ -272,15 +257,15 @@ export class AppComponent implements OnInit {
   }
 
   rowStatusLabel(row: AtqRow): string {
-    if (this.rowHasFailure(row) && !row.hasActiveTicket) {
-      return 'Needs ticket';
+    if (this.rowHasFailure(row) && !row.hasChildTicket) {
+      return 'Needs child';
     }
 
-    if (this.rowHasFailure(row) && row.hasActiveTicket) {
-      return 'Ticket active';
+    if (this.rowHasFailure(row) && row.hasChildTicket) {
+      return 'Child active';
     }
 
-    if (row.hasActiveTicket) {
+    if (row.hasChildTicket) {
       return 'Monitoring';
     }
 
@@ -291,7 +276,7 @@ export class AppComponent implements OnInit {
     const status = row[result].status;
 
     if (status === 'fail') {
-      return row.hasActiveTicket ? 'warning' : 'critical';
+      return row.hasChildTicket ? 'warning' : 'critical';
     }
 
     if (status === 'no-data') {
@@ -321,6 +306,29 @@ export class AppComponent implements OnInit {
       default:
         return row[result].status === 'neutral' ? 3 : 4;
     }
+  }
+
+  private loadTickets(sourceKey: string, row: AtqRow): void {
+    this.dashboardService.getTicketBundle(row.id, this.filters).subscribe({
+      next: (tickets) => {
+        const current = this.hoverDetail();
+        if (current?.sourceKey !== sourceKey) {
+          return;
+        }
+
+        this.hoverDetail.set({
+          ...current,
+          tickets,
+          loading: false,
+        });
+      },
+      error: () => {
+        const current = this.hoverDetail();
+        if (current?.sourceKey === sourceKey) {
+          this.hoverDetail.set({ ...current, tickets: null, loading: false });
+        }
+      },
+    });
   }
 
   private startPinTimer(sourceKey: string, pinImmediately: boolean): void {
@@ -395,7 +403,7 @@ export class AppComponent implements OnInit {
   private tooltipPosition(event: MouseEvent): { x: number; y: number } {
     const margin = 16;
     const popoverWidth = 360;
-    const popoverHeight = 260;
+    const popoverHeight = 620;
 
     return {
       x: Math.max(margin, Math.min(event.clientX + 18, window.innerWidth - popoverWidth - margin)),

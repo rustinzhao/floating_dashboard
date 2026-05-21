@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import ActiveTicket, DashboardFilters, DashboardResponse
+from .models import ActiveTicket, DashboardFilters, DashboardResponse, TicketBundle
 from .repository import create_repository
 
 app = FastAPI(title="ATQ Dashboard API", version="0.1.0")
@@ -52,3 +52,18 @@ def get_active_ticket(
         build_version=build_version,
     )
     return repository.get_active_ticket(atq_id, filters)
+
+
+@app.get("/api/atqs/{atq_id}/tickets", response_model=TicketBundle)
+def get_ticket_bundle(
+    atq_id: str,
+    service_version: str = Query(default="", alias="serviceVersion"),
+    phone_model: str = Query(default="", alias="phoneModel"),
+    build_version: str = Query(default="release_5.203", alias="buildVersion"),
+) -> TicketBundle:
+    filters = DashboardFilters(
+        service_version=service_version,
+        phone_model=phone_model,
+        build_version=build_version,
+    )
+    return repository.get_ticket_bundle(atq_id, filters)

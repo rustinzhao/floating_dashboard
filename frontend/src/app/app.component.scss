@@ -395,7 +395,9 @@
   position: fixed;
   z-index: 20;
   width: min(360px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
   padding: 16px;
+  overflow: auto;
   color: #f7fafc;
   pointer-events: none;
   background: rgba(5, 18, 41, 0.96);
@@ -441,11 +443,33 @@
   width: 18px;
   height: 18px;
   pointer-events: none;
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  border-top-color: rgba(113, 208, 246, 0.5);
-  border-radius: 999px;
   opacity: 0.55;
-  animation: pin-spin 600ms linear forwards;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.pin-progress-track,
+.pin-progress-value {
+  fill: none;
+  stroke-width: 2.2;
+}
+
+.pin-progress-track {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.pin-progress-value {
+  stroke: rgba(113, 208, 246, 0.72);
+  stroke-dasharray: 44;
+  stroke-dashoffset: 44;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  animation: pin-progress-fill 600ms linear forwards;
 }
 
 .popover-close {
@@ -499,6 +523,57 @@
   font-weight: 900;
 }
 
+.ticket-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ticket-card {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+
+  h3 {
+    margin: 8px 0 12px;
+    font-size: 15px;
+  }
+}
+
+.child-ticket-card {
+  border-color: rgba(113, 208, 246, 0.24);
+}
+
+.empty-child-ticket {
+  background: rgba(255, 255, 255, 0.035);
+  border-style: dashed;
+}
+
+.ticket-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #cbd9e8;
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+
+  strong {
+    color: #71d0f6;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+}
+
+.ticket-empty {
+  margin: 10px 0 0;
+  color: #d9e4ef;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .ticket-actions {
   display: flex;
   flex-wrap: wrap;
@@ -528,13 +603,13 @@
   }
 }
 
-@keyframes pin-spin {
+@keyframes pin-progress-fill {
   from {
-    transform: rotate(0deg);
+    stroke-dashoffset: 44;
   }
 
   to {
-    transform: rotate(360deg);
+    stroke-dashoffset: 0;
   }
 }
 
