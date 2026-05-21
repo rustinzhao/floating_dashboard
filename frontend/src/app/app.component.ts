@@ -244,6 +244,11 @@ export class AppComponent implements OnInit {
     return 'normal';
   }
 
+  isHoverSource(row: AtqRow, result: 'Classic' | 'LE'): boolean {
+    const hover = this.hoverDetail();
+    return hover?.sourceKey === `${row.id}:ticket:${result}`;
+  }
+
   private sortRank(row: AtqRow): number {
     return Math.min(this.resultRank(row, 'classic'), this.resultRank(row, 'le'));
   }
