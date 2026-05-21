@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -37,6 +37,7 @@ interface HoverState {
 export class AppComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private pinTimer: ReturnType<typeof setTimeout> | null = null;
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly dashboard = signal<DashboardPayload | null>(null);
   readonly loading = signal(false);
@@ -64,6 +65,21 @@ export class AppComponent implements OnInit {
     this.loadDashboard();
   }
 
+  @HostListener('document:mousemove', ['$event'])
+  onDocumentMouseMove(event: MouseEvent): void {
+    const current = this.hoverDetail();
+    if (!current?.pinned) {
+      return;
+    }
+
+    if (this.isPointerInsideActiveArea(event.target, current.sourceKey)) {
+      this.clearCloseTimer();
+      return;
+    }
+
+    this.schedulePinnedClose(current.sourceKey);
+  }
+
   loadDashboard(): void {
     this.loading.set(true);
     this.errorMessage.set('');
@@ -82,8 +98,12 @@ export class AppComponent implements OnInit {
   }
 
   showAtqInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
+    this.clearCloseTimer();
     const position = this.tooltipPosition(event);
     const sourceKey = `${row.id}:atq`;
+    if (this.retainPinnedSource(sourceKey)) {
+      return;
+    }
 
     this.hoverDetail.set({
       sourceKey,
@@ -102,8 +122,12 @@ export class AppComponent implements OnInit {
   }
 
   showTargetInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
+    this.clearCloseTimer();
     const position = this.tooltipPosition(event);
     const sourceKey = `${row.id}:target`;
+    if (this.retainPinnedSource(sourceKey)) {
+      return;
+    }
 
     this.hoverDetail.set({
       sourceKey,
@@ -122,8 +146,12 @@ export class AppComponent implements OnInit {
   }
 
   showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE', pinImmediately = false): void {
+    this.clearCloseTimer();
     const position = this.tooltipPosition(event);
     const sourceKey = `${row.id}:ticket:${resultName}`;
+    if (this.retainPinnedSource(sourceKey)) {
+      return;
+    }
 
     this.hoverDetail.set({
       sourceKey,
@@ -179,16 +207,45 @@ export class AppComponent implements OnInit {
     });
   }
 
-  hideTooltip(): void {
+  leaveHoverSource(): void {
     const current = this.hoverDetail();
-    if (current?.pinned) {
+    if (!current) {
       return;
     }
+    if (current.pinned) {
+      this.schedulePinnedClose(current.sourceKey);
+      return;
+    }
+
+    this.clearPinTimer();
+    this.hoverDetail.set(null);
+  }
+
+  enterTooltip(): void {
+    this.clearCloseTimer();
+  }
+
+  leaveTooltip(): void {
+    const current = this.hoverDetail();
+    if (!current) {
+      return;
+    }
+    if (current.pinned) {
+      this.schedulePinnedClose(current.sourceKey);
+      return;
+    }
+
+    this.closeTooltip();
+  }
+
+  hideTooltip(): void {
+    this.clearCloseTimer();
     this.clearPinTimer();
     this.hoverDetail.set(null);
   }
 
   closeTooltip(): void {
+    this.clearCloseTimer();
     this.clearPinTimer();
     this.hoverDetail.set(null);
   }
@@ -294,6 +351,45 @@ export class AppComponent implements OnInit {
 
     clearTimeout(this.pinTimer);
     this.pinTimer = null;
+  }
+
+  private retainPinnedSource(sourceKey: string): boolean {
+    const current = this.hoverDetail();
+    return current?.sourceKey === sourceKey && current.pinned;
+  }
+
+  private isPointerInsideActiveArea(target: EventTarget | null, sourceKey: string): boolean {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    if (target.closest('.detail-popover')) {
+      return true;
+    }
+
+    const source = target.closest<HTMLElement>('[data-hover-source]');
+    return source?.dataset['hoverSource'] === sourceKey;
+  }
+
+  private schedulePinnedClose(sourceKey: string): void {
+    this.clearCloseTimer();
+    this.closeTimer = setTimeout(() => {
+      const current = this.hoverDetail();
+      if (current?.sourceKey !== sourceKey) {
+        return;
+      }
+
+      this.closeTooltip();
+    }, 180);
+  }
+
+  private clearCloseTimer(): void {
+    if (!this.closeTimer) {
+      return;
+    }
+
+    clearTimeout(this.closeTimer);
+    this.closeTimer = null;
   }
 
   private tooltipPosition(event: MouseEvent): { x: number; y: number } {

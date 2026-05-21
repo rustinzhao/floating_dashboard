@@ -95,10 +95,11 @@
 
           <div
             class="atq-cell"
+            [attr.data-hover-source]="row.id + ':atq'"
             (mouseenter)="showAtqInfo($event, row)"
             (mousemove)="moveTooltip($event)"
             (click)="showAtqInfo($event, row, true)"
-            (mouseleave)="hideTooltip()"
+            (mouseleave)="leaveHoverSource()"
           >
             <div class="atq-heading">
               <strong>{{ row.code }}</strong>
@@ -113,10 +114,11 @@
 
           <div
             class="target-cell"
+            [attr.data-hover-source]="row.id + ':target'"
             (mouseenter)="showTargetInfo($event, row)"
             (mousemove)="moveTooltip($event)"
             (click)="showTargetInfo($event, row, true)"
-            (mouseleave)="hideTooltip()"
+            (mouseleave)="leaveHoverSource()"
           >
             <span>Target</span>
             <strong>{{ row.target }}</strong>
@@ -124,6 +126,7 @@
 
           <div
             class="result-cell"
+            [attr.data-hover-source]="row.id + ':ticket:Classic'"
             [class]="row.classic.status"
             [class.issue-critical]="resultSeverity(row, 'classic') === 'critical'"
             [class.issue-warning]="resultSeverity(row, 'classic') === 'warning'"
@@ -132,7 +135,7 @@
             (mouseenter)="showTicket($event, row, 'Classic')"
             (mousemove)="moveTooltip($event)"
             (click)="showTicket($event, row, 'Classic', true)"
-            (mouseleave)="hideTooltip()"
+            (mouseleave)="leaveHoverSource()"
           >
             <span>{{ row.classic.label }}</span>
             <strong>{{ row.classic.value }}</strong>
@@ -140,6 +143,7 @@
 
           <div
             class="result-cell"
+            [attr.data-hover-source]="row.id + ':ticket:LE'"
             [class]="row.le.status"
             [class.issue-critical]="resultSeverity(row, 'le') === 'critical'"
             [class.issue-warning]="resultSeverity(row, 'le') === 'warning'"
@@ -148,7 +152,7 @@
             (mouseenter)="showTicket($event, row, 'LE')"
             (mousemove)="moveTooltip($event)"
             (click)="showTicket($event, row, 'LE', true)"
-            (mouseleave)="hideTooltip()"
+            (mouseleave)="leaveHoverSource()"
           >
             <span>{{ row.le.label }}</span>
             <strong>{{ row.le.value }}</strong>
@@ -164,6 +168,8 @@
     *ngIf="hoverDetail() as hover"
     [style.left.px]="hover.x"
     [style.top.px]="hover.y"
+    (mouseenter)="enterTooltip()"
+    (mouseleave)="leaveTooltip()"
   >
     <span class="pin-progress" *ngIf="hover.pinning && !hover.pinned" aria-hidden="true"></span>
     <button class="popover-close" type="button" *ngIf="hover.pinned" (click)="closeTooltip()" aria-label="Close tooltip">
