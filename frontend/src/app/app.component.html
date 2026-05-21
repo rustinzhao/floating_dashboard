@@ -73,6 +73,28 @@
     <div class="section-bar">Top 40</div>
 
     <div class="workspace">
+      <div class="table-toolbar">
+        <span>Sort</span>
+        <div class="sort-segment" role="group" aria-label="Sort ATQ rows">
+          <button
+            type="button"
+            [class.is-active]="sortMode() === 'issue'"
+            [attr.aria-pressed]="sortMode() === 'issue'"
+            (click)="setSortMode('issue')"
+          >
+            Issue ATQ
+          </button>
+          <button
+            type="button"
+            [class.is-active]="sortMode() === 'domain'"
+            [attr.aria-pressed]="sortMode() === 'domain'"
+            (click)="setSortMode('domain')"
+          >
+            Domain
+          </button>
+        </div>
+      </div>
+
       <div class="metric-table">
         <div class="table-header">
           <span>Domain</span>

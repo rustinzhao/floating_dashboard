@@ -12,6 +12,7 @@ import {
 } from './dashboard.service';
 
 type HoverKind = 'atq' | 'target' | 'ticket';
+type SortMode = 'issue' | 'domain';
 
 interface HoverState {
   sourceKey: string;
@@ -44,6 +45,7 @@ export class AppComponent implements OnInit {
   readonly loading = signal(false);
   readonly errorMessage = signal('');
   readonly hoverDetail = signal<HoverState | null>(null);
+  readonly sortMode = signal<SortMode>('issue');
 
   filters: DashboardFilters = {
     serviceVersion: '',
@@ -56,8 +58,8 @@ export class AppComponent implements OnInit {
     return rows
       .map((row, index) => ({ row, index }))
       .sort((left, right) => {
-        const rankDiff = this.sortRank(left.row) - this.sortRank(right.row);
-        return rankDiff || left.index - right.index;
+        const diff = this.compareRows(left.row, right.row);
+        return diff || left.index - right.index;
       })
       .map(({ row }) => row);
   });
@@ -96,6 +98,11 @@ export class AppComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  setSortMode(mode: SortMode): void {
+    this.sortMode.set(mode);
+    this.hideTooltip();
   }
 
   showAtqInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
@@ -293,6 +300,21 @@ export class AppComponent implements OnInit {
 
   private sortRank(row: AtqRow): number {
     return Math.min(this.resultRank(row, 'classic'), this.resultRank(row, 'le'));
+  }
+
+  private compareRows(left: AtqRow, right: AtqRow): number {
+    const rankDiff = this.sortRank(left) - this.sortRank(right);
+
+    if (this.sortMode() === 'domain') {
+      const domainDiff = left.domain.localeCompare(right.domain);
+      return domainDiff || rankDiff || this.compareAtqCodes(left.code, right.code);
+    }
+
+    return rankDiff || this.compareAtqCodes(left.code, right.code);
+  }
+
+  private compareAtqCodes(left: string, right: string): number {
+    return left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' });
   }
 
   private resultRank(row: AtqRow, result: 'classic' | 'le'): number {
