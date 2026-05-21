@@ -23,8 +23,10 @@ export interface AtqRow {
   id: string;
   code: string;
   description: string;
+  atqExplanation: string;
   domain: string;
   target: string;
+  targetExplanation: string;
   hasActiveTicket: boolean;
   classic: ResultMetric;
   le: ResultMetric;

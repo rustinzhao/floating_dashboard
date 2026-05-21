@@ -36,6 +36,7 @@ Open `http://localhost:4200`.
 - `GET /api/atqs/{atq_id}/active-ticket`
 
 The frontend calls the active ticket endpoint when hovering an ATQ row.
+The first table column labels each row's domain. ATQ and Target cells show explanatory tooltips; Classic and LE result cells show active-ticket status.
 
 Rows are sorted client-side by action priority:
 

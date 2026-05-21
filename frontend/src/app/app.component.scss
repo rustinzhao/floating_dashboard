@@ -169,33 +169,7 @@
 }
 
 .workspace {
-  display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 10px;
   padding: 10px;
-}
-
-.domain-rail {
-  display: grid;
-  align-content: start;
-  gap: 7px;
-
-  button {
-    min-height: 78px;
-    padding: 14px;
-    color: #f4f0e9;
-    font-size: 20px;
-    font-weight: 800;
-    cursor: pointer;
-    background: #1b6393;
-    border: 1px solid rgba(8, 28, 56, 0.22);
-    border-radius: 5px;
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.25);
-
-    &.active {
-      background: #2f8a6f;
-    }
-  }
 }
 
 .metric-table {
@@ -205,7 +179,12 @@
 .table-header,
 .metric-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1.1fr) minmax(160px, 0.95fr) minmax(190px, 0.9fr) minmax(190px, 0.9fr);
+  grid-template-columns:
+    minmax(130px, 0.55fr)
+    minmax(230px, 1.15fr)
+    minmax(170px, 0.85fr)
+    minmax(190px, 0.9fr)
+    minmax(190px, 0.9fr);
   gap: 8px;
 }
 
@@ -223,12 +202,17 @@
     border: 1px solid rgba(21, 25, 34, 0.08);
     border-radius: 5px;
 
-    &:nth-child(3) {
+    &:nth-child(1) {
+      color: #f5f1e9;
+      background: #2f8a6f;
+    }
+
+    &:nth-child(4) {
       color: #f5f1e9;
       background: #0e4d7f;
     }
 
-    &:nth-child(4) {
+    &:nth-child(5) {
       color: #f5f1e9;
       background: #23787d;
     }
@@ -262,6 +246,20 @@
   &.has-failure.has-active-ticket > div {
     border-color: rgba(210, 139, 37, 0.34);
     background: rgba(255, 251, 242, 0.78);
+  }
+}
+
+.domain-cell {
+  display: grid;
+  align-content: center;
+  color: #f4f0e9;
+  background: #2f8a6f !important;
+
+  span {
+    overflow-wrap: anywhere;
+    font-size: 19px;
+    font-weight: 900;
+    line-height: 1.1;
   }
 }
 
@@ -352,7 +350,7 @@
   color: #b42318;
 }
 
-.ticket-popover {
+.detail-popover {
   position: fixed;
   z-index: 20;
   width: min(360px, calc(100vw - 32px));
@@ -391,6 +389,14 @@
   }
 }
 
+.detail-body {
+  margin: 8px 0 0;
+  color: #d9e4ef;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .ticket-heading {
   display: flex;
   justify-content: space-between;
@@ -410,8 +416,7 @@
 
 @media (max-width: 1050px) {
   .topbar,
-  .overview-panels,
-  .workspace {
+  .overview-panels {
     grid-template-columns: 1fr;
   }
 
@@ -419,18 +424,14 @@
     grid-template-columns: 1fr;
   }
 
-  .domain-rail {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-
-    button {
-      min-height: 56px;
-      font-size: 16px;
-    }
-  }
-
   .table-header,
   .metric-row {
-    grid-template-columns: minmax(180px, 1fr) minmax(140px, 0.8fr) minmax(140px, 0.8fr) minmax(140px, 0.8fr);
+    grid-template-columns:
+      minmax(112px, 0.45fr)
+      minmax(180px, 1fr)
+      minmax(140px, 0.75fr)
+      minmax(140px, 0.75fr)
+      minmax(140px, 0.75fr);
   }
 }
 

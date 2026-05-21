@@ -10,10 +10,16 @@ import {
   DashboardService,
 } from './dashboard.service';
 
-interface TicketHoverState {
+type HoverKind = 'atq' | 'target' | 'ticket';
+
+interface HoverState {
+  kind: HoverKind;
   row: AtqRow;
+  title: string;
+  body?: string;
   ticket: ActiveTicket | null;
   loading: boolean;
+  resultName?: 'Classic' | 'LE';
   x: number;
   y: number;
 }
@@ -31,8 +37,7 @@ export class AppComponent implements OnInit {
   readonly dashboard = signal<DashboardPayload | null>(null);
   readonly loading = signal(false);
   readonly errorMessage = signal('');
-  readonly selectedDomain = signal('Audio');
-  readonly hoveredTicket = signal<TicketHoverState | null>(null);
+  readonly hoverDetail = signal<HoverState | null>(null);
 
   filters: DashboardFilters = {
     serviceVersion: '',
@@ -40,16 +45,10 @@ export class AppComponent implements OnInit {
     buildVersion: 'release_5.203',
   };
 
-  readonly domains = computed(() => {
-    const domainSet = new Set(this.dashboard()?.rows.map((row) => row.domain) ?? []);
-    return Array.from(domainSet);
-  });
-
   readonly visibleRows = computed(() => {
     const rows = this.dashboard()?.rows ?? [];
     return rows
       .map((row, index) => ({ row, index }))
-      .filter(({ row }) => row.domain === this.selectedDomain())
       .sort((left, right) => {
         const rankDiff = this.sortRank(left.row) - this.sortRank(right.row);
         return rankDiff || left.index - right.index;
@@ -64,15 +63,12 @@ export class AppComponent implements OnInit {
   loadDashboard(): void {
     this.loading.set(true);
     this.errorMessage.set('');
+    this.hideTooltip();
 
     this.dashboardService.getDashboard(this.filters).subscribe({
       next: (payload) => {
         this.dashboard.set(payload);
         this.loading.set(false);
-
-        if (!this.domains().includes(this.selectedDomain())) {
-          this.selectedDomain.set(this.domains()[0] ?? 'Audio');
-        }
       },
       error: () => {
         this.errorMessage.set('Unable to load dashboard data from the API.');
@@ -81,52 +77,81 @@ export class AppComponent implements OnInit {
     });
   }
 
-  showTicket(event: MouseEvent, row: AtqRow): void {
-    this.hoveredTicket.set({
+  showAtqInfo(event: MouseEvent, row: AtqRow): void {
+    this.hoverDetail.set({
+      kind: 'atq',
       row,
+      title: `${row.code} explanation`,
+      body: row.atqExplanation,
+      ticket: null,
+      loading: false,
+      x: event.clientX + 18,
+      y: event.clientY + 18,
+    });
+  }
+
+  showTargetInfo(event: MouseEvent, row: AtqRow): void {
+    this.hoverDetail.set({
+      kind: 'target',
+      row,
+      title: `Target for ${row.code}`,
+      body: row.targetExplanation,
+      ticket: null,
+      loading: false,
+      x: event.clientX + 18,
+      y: event.clientY + 18,
+    });
+  }
+
+  showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE'): void {
+    this.hoverDetail.set({
+      kind: 'ticket',
+      row,
+      title: `${resultName} ticket status`,
       ticket: null,
       loading: true,
+      resultName,
       x: event.clientX + 18,
       y: event.clientY + 18,
     });
 
     this.dashboardService.getActiveTicket(row.id, this.filters).subscribe({
       next: (ticket) => {
-        const current = this.hoveredTicket();
-        if (current?.row.id !== row.id) {
+        const current = this.hoverDetail();
+        if (current?.kind !== 'ticket' || current.row.id !== row.id || current.resultName !== resultName) {
           return;
         }
 
-        this.hoveredTicket.set({
+        this.hoverDetail.set({
           ...current,
           ticket,
           loading: false,
         });
       },
       error: () => {
-        const current = this.hoveredTicket();
-        if (current?.row.id === row.id) {
-          this.hoveredTicket.set({ ...current, ticket: null, loading: false });
+        const current = this.hoverDetail();
+        if (current?.kind === 'ticket' && current.row.id === row.id && current.resultName === resultName) {
+          this.hoverDetail.set({ ...current, ticket: null, loading: false });
         }
       },
     });
   }
 
-  moveTicket(event: MouseEvent): void {
-    const current = this.hoveredTicket();
+  moveTooltip(event: MouseEvent): void {
+    const current = this.hoverDetail();
     if (!current) {
       return;
     }
 
-    this.hoveredTicket.set({
+    this.hoverDetail.set({
       ...current,
       x: event.clientX + 18,
       y: event.clientY + 18,
     });
   }
 
-  hideTicket(): void {
-    this.hoveredTicket.set(null);
+  hideTooltip(): void {
+    this.hoverDetail.set(null);
   }
 
   rowHasFailure(row: AtqRow): boolean {

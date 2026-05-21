@@ -73,19 +73,9 @@
     <div class="section-bar">Top 40</div>
 
     <div class="workspace">
-      <aside class="domain-rail" aria-label="ATQ domains">
-        <button
-          type="button"
-          *ngFor="let domain of domains()"
-          [class.active]="selectedDomain() === domain"
-          (click)="selectedDomain.set(domain)"
-        >
-          {{ domain }}
-        </button>
-      </aside>
-
       <div class="metric-table">
         <div class="table-header">
+          <span>Domain</span>
           <span>ATQ</span>
           <span>Target</span>
           <span>Classic</span>
@@ -100,12 +90,18 @@
           [class.has-failure]="rowHasFailure(row)"
           [class.has-active-ticket]="row.hasActiveTicket"
           *ngFor="let row of visibleRows()"
-          (mouseenter)="showTicket($event, row)"
-          (mousemove)="moveTicket($event)"
-          (click)="showTicket($event, row)"
-          (mouseleave)="hideTicket()"
         >
-          <div class="atq-cell">
+          <div class="domain-cell">
+            <span>{{ row.domain }}</span>
+          </div>
+
+          <div
+            class="atq-cell"
+            (mouseenter)="showAtqInfo($event, row)"
+            (mousemove)="moveTooltip($event)"
+            (click)="showAtqInfo($event, row)"
+            (mouseleave)="hideTooltip()"
+          >
             <div class="atq-heading">
               <strong>{{ row.code }}</strong>
               <span
@@ -119,17 +115,37 @@
             <span>{{ row.description }}</span>
           </div>
 
-          <div class="target-cell">
+          <div
+            class="target-cell"
+            (mouseenter)="showTargetInfo($event, row)"
+            (mousemove)="moveTooltip($event)"
+            (click)="showTargetInfo($event, row)"
+            (mouseleave)="hideTooltip()"
+          >
             <span>Target</span>
             <strong>{{ row.target }}</strong>
           </div>
 
-          <div class="result-cell" [class]="row.classic.status">
+          <div
+            class="result-cell"
+            [class]="row.classic.status"
+            (mouseenter)="showTicket($event, row, 'Classic')"
+            (mousemove)="moveTooltip($event)"
+            (click)="showTicket($event, row, 'Classic')"
+            (mouseleave)="hideTooltip()"
+          >
             <span>{{ row.classic.label }}</span>
             <strong>{{ row.classic.value }}</strong>
           </div>
 
-          <div class="result-cell" [class]="row.le.status">
+          <div
+            class="result-cell"
+            [class]="row.le.status"
+            (mouseenter)="showTicket($event, row, 'LE')"
+            (mousemove)="moveTooltip($event)"
+            (click)="showTicket($event, row, 'LE')"
+            (mouseleave)="hideTooltip()"
+          >
             <span>{{ row.le.label }}</span>
             <strong>{{ row.le.value }}</strong>
           </div>
@@ -139,43 +155,55 @@
   </section>
 
   <aside
-    class="ticket-popover"
-    *ngIf="hoveredTicket() as hover"
+    class="detail-popover"
+    *ngIf="hoverDetail() as hover"
     [style.left.px]="hover.x"
     [style.top.px]="hover.y"
   >
     <div class="ticket-heading">
-      <span>{{ hover.loading ? 'Checking ticket' : hover.ticket ? 'Active ticket' : 'Ticket status' }}</span>
+      <span *ngIf="hover.kind === 'atq'">ATQ explanation</span>
+      <span *ngIf="hover.kind === 'target'">Target explanation</span>
+      <span *ngIf="hover.kind === 'ticket'">
+        {{ hover.loading ? 'Checking ticket' : hover.ticket ? 'Active ticket' : 'Ticket status' }}
+      </span>
       <strong>{{ hover.row.code }}</strong>
     </div>
 
-    <div class="ticket-loading" *ngIf="hover.loading">Loading ticket...</div>
-
-    <ng-container *ngIf="!hover.loading && hover.ticket">
-      <p class="ticket-id">{{ hover.ticket.ticketId }}</p>
-      <h3>{{ hover.ticket.title }}</h3>
-      <dl>
-        <div>
-          <dt>Status</dt>
-          <dd>{{ hover.ticket.status }}</dd>
-        </div>
-        <div>
-          <dt>Owner</dt>
-          <dd>{{ hover.ticket.owner }}</dd>
-        </div>
-        <div>
-          <dt>Queue</dt>
-          <dd>{{ hover.ticket.queue }}</dd>
-        </div>
-        <div>
-          <dt>Updated</dt>
-          <dd>{{ hover.ticket.updatedAt }}</dd>
-        </div>
-      </dl>
+    <ng-container *ngIf="hover.kind !== 'ticket'">
+      <h3>{{ hover.title }}</h3>
+      <p class="detail-body">{{ hover.body }}</p>
     </ng-container>
 
-    <p class="ticket-loading" *ngIf="!hover.loading && !hover.ticket">
-      {{ rowHasFailure(hover.row) ? 'No active ticket - needs triage' : 'No active ticket' }}
-    </p>
+    <ng-container *ngIf="hover.kind === 'ticket'">
+      <p class="ticket-id">{{ hover.resultName }} result</p>
+      <div class="ticket-loading" *ngIf="hover.loading">Loading ticket...</div>
+
+      <ng-container *ngIf="!hover.loading && hover.ticket">
+        <p class="ticket-id">{{ hover.ticket.ticketId }}</p>
+        <h3>{{ hover.ticket.title }}</h3>
+        <dl>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ hover.ticket.status }}</dd>
+          </div>
+          <div>
+            <dt>Owner</dt>
+            <dd>{{ hover.ticket.owner }}</dd>
+          </div>
+          <div>
+            <dt>Queue</dt>
+            <dd>{{ hover.ticket.queue }}</dd>
+          </div>
+          <div>
+            <dt>Updated</dt>
+            <dd>{{ hover.ticket.updatedAt }}</dd>
+          </div>
+        </dl>
+      </ng-container>
+
+      <p class="ticket-loading" *ngIf="!hover.loading && !hover.ticket">
+        {{ rowHasFailure(hover.row) ? 'No active ticket - needs triage' : 'No active ticket' }}
+      </p>
+    </ng-container>
   </aside>
 </main>
