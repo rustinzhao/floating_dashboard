@@ -120,14 +120,13 @@ export class AppComponent implements OnInit {
       title: `${row.code} explanation`,
       body: row.atqExplanation,
       tickets: null,
-      loading: true,
+      loading: false,
       pinned: pinImmediately,
       pinning: !pinImmediately,
       x: position.x,
       y: position.y,
     });
     this.startPinTimer(sourceKey, pinImmediately);
-    this.loadTickets(sourceKey, row);
   }
 
   showTargetInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
@@ -145,14 +144,13 @@ export class AppComponent implements OnInit {
       title: `Target for ${row.code}`,
       body: row.targetExplanation,
       tickets: null,
-      loading: true,
+      loading: false,
       pinned: pinImmediately,
       pinning: !pinImmediately,
       x: position.x,
       y: position.y,
     });
     this.startPinTimer(sourceKey, pinImmediately);
-    this.loadTickets(sourceKey, row);
   }
 
   showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE', pinImmediately = false): void {
@@ -371,7 +369,7 @@ export class AppComponent implements OnInit {
         pinning: false,
       });
       this.pinTimer = null;
-    }, 600);
+    }, 1500);
   }
 
   private clearPinTimer(): void {

@@ -2,7 +2,7 @@
   <header class="topbar">
     <div class="title-block">
       <p class="eyebrow">Device Certification</p>
-      <h1>Bongo ATQ MR3</h1>
+      <h1>Largo ATQ</h1>
     </div>
 
     <form class="filters" (change)="loadDashboard()">
@@ -221,88 +221,90 @@
       <p class="ticket-id">{{ hover.resultName }} result</p>
     </ng-container>
 
-    <div class="ticket-loading" *ngIf="hover.loading">Loading tickets...</div>
+    <ng-container *ngIf="hover.kind === 'ticket'">
+      <div class="ticket-loading" *ngIf="hover.loading">Loading tickets...</div>
 
-    <ng-container *ngIf="!hover.loading && hover.tickets as tickets">
-      <div class="ticket-stack">
-        <article class="ticket-card">
-          <div class="ticket-section-heading">
-            <span>Master ticket</span>
-            <strong>{{ tickets.masterTicket.ticketId }}</strong>
-          </div>
-          <h3>{{ tickets.masterTicket.title }}</h3>
-          <dl>
-            <div>
-              <dt>Status</dt>
-              <dd>{{ tickets.masterTicket.status }}</dd>
+      <ng-container *ngIf="!hover.loading && hover.tickets as tickets">
+        <div class="ticket-stack">
+          <article class="ticket-card">
+            <div class="ticket-section-heading">
+              <span>Master ticket</span>
+              <strong>{{ tickets.masterTicket.ticketId }}</strong>
             </div>
-            <div>
-              <dt>Owner</dt>
-              <dd>{{ tickets.masterTicket.owner }}</dd>
+            <h3>{{ tickets.masterTicket.title }}</h3>
+            <dl>
+              <div>
+                <dt>Status</dt>
+                <dd>{{ tickets.masterTicket.status }}</dd>
+              </div>
+              <div>
+                <dt>Owner</dt>
+                <dd>{{ tickets.masterTicket.owner }}</dd>
+              </div>
+              <div>
+                <dt>Queue</dt>
+                <dd>{{ tickets.masterTicket.queue }}</dd>
+              </div>
+              <div>
+                <dt>Updated</dt>
+                <dd>{{ tickets.masterTicket.updatedAt }}</dd>
+              </div>
+            </dl>
+            <div class="ticket-actions" *ngIf="hover.pinned">
+              <a [href]="ticketUrl(tickets.masterTicket)" target="_blank" rel="noreferrer">Open master</a>
             </div>
-            <div>
-              <dt>Queue</dt>
-              <dd>{{ tickets.masterTicket.queue }}</dd>
-            </div>
-            <div>
-              <dt>Updated</dt>
-              <dd>{{ tickets.masterTicket.updatedAt }}</dd>
-            </div>
-          </dl>
-          <div class="ticket-actions" *ngIf="hover.pinned">
-            <a [href]="ticketUrl(tickets.masterTicket)" target="_blank" rel="noreferrer">Open master</a>
-          </div>
-        </article>
+          </article>
 
-        <article class="ticket-card child-ticket-card" *ngIf="tickets.childTicket as child; else noChildTicket">
+          <article class="ticket-card child-ticket-card" *ngIf="tickets.childTicket as child; else noChildTicket">
+            <div class="ticket-section-heading">
+              <span>Child ticket</span>
+              <strong>{{ child.ticketId }}</strong>
+            </div>
+            <h3>{{ child.title }}</h3>
+            <dl>
+              <div>
+                <dt>Status</dt>
+                <dd>{{ child.status }}</dd>
+              </div>
+              <div>
+                <dt>Owner</dt>
+                <dd>{{ child.owner }}</dd>
+              </div>
+              <div>
+                <dt>Queue</dt>
+                <dd>{{ child.queue }}</dd>
+              </div>
+              <div>
+                <dt>Updated</dt>
+                <dd>{{ child.updatedAt }}</dd>
+              </div>
+            </dl>
+            <div class="ticket-actions" *ngIf="hover.pinned">
+              <a [href]="ticketUrl(child)" target="_blank" rel="noreferrer">Open child</a>
+              <a [href]="newChildTicketUrl(hover)" target="_blank" rel="noreferrer">Add child ticket</a>
+            </div>
+          </article>
+        </div>
+      </ng-container>
+
+      <ng-template #noChildTicket>
+        <article class="ticket-card child-ticket-card empty-child-ticket">
           <div class="ticket-section-heading">
             <span>Child ticket</span>
-            <strong>{{ child.ticketId }}</strong>
+            <strong>None</strong>
           </div>
-          <h3>{{ child.title }}</h3>
-          <dl>
-            <div>
-              <dt>Status</dt>
-              <dd>{{ child.status }}</dd>
-            </div>
-            <div>
-              <dt>Owner</dt>
-              <dd>{{ child.owner }}</dd>
-            </div>
-            <div>
-              <dt>Queue</dt>
-              <dd>{{ child.queue }}</dd>
-            </div>
-            <div>
-              <dt>Updated</dt>
-              <dd>{{ child.updatedAt }}</dd>
-            </div>
-          </dl>
+          <p class="ticket-empty">
+            {{ rowHasFailure(hover.row) ? 'No child ticket linked - needs active owner' : 'No child ticket linked' }}
+          </p>
           <div class="ticket-actions" *ngIf="hover.pinned">
-            <a [href]="ticketUrl(child)" target="_blank" rel="noreferrer">Open child</a>
             <a [href]="newChildTicketUrl(hover)" target="_blank" rel="noreferrer">Add child ticket</a>
           </div>
         </article>
-      </div>
+      </ng-template>
+
+      <p class="ticket-loading" *ngIf="!hover.loading && !hover.tickets">
+        Ticket data unavailable.
+      </p>
     </ng-container>
-
-    <ng-template #noChildTicket>
-      <article class="ticket-card child-ticket-card empty-child-ticket">
-        <div class="ticket-section-heading">
-          <span>Child ticket</span>
-          <strong>None</strong>
-        </div>
-        <p class="ticket-empty">
-          {{ rowHasFailure(hover.row) ? 'No child ticket linked - needs active owner' : 'No child ticket linked' }}
-        </p>
-        <div class="ticket-actions" *ngIf="hover.pinned">
-          <a [href]="newChildTicketUrl(hover)" target="_blank" rel="noreferrer">Add child ticket</a>
-        </div>
-      </article>
-    </ng-template>
-
-    <p class="ticket-loading" *ngIf="!hover.loading && !hover.tickets">
-      Ticket data unavailable.
-    </p>
   </aside>
 </main>
