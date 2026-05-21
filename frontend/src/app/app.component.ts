@@ -13,12 +13,15 @@ import {
 type HoverKind = 'atq' | 'target' | 'ticket';
 
 interface HoverState {
+  sourceKey: string;
   kind: HoverKind;
   row: AtqRow;
   title: string;
   body?: string;
   ticket: ActiveTicket | null;
   loading: boolean;
+  pinned: boolean;
+  pinning: boolean;
   resultName?: 'Classic' | 'LE';
   x: number;
   y: number;
@@ -33,6 +36,7 @@ interface HoverState {
 })
 export class AppComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+  private pinTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly dashboard = signal<DashboardPayload | null>(null);
   readonly loading = signal(false);
@@ -77,48 +81,69 @@ export class AppComponent implements OnInit {
     });
   }
 
-  showAtqInfo(event: MouseEvent, row: AtqRow): void {
+  showAtqInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
+    const position = this.tooltipPosition(event);
+    const sourceKey = `${row.id}:atq`;
+
     this.hoverDetail.set({
+      sourceKey,
       kind: 'atq',
       row,
       title: `${row.code} explanation`,
       body: row.atqExplanation,
       ticket: null,
       loading: false,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      pinned: pinImmediately,
+      pinning: !pinImmediately,
+      x: position.x,
+      y: position.y,
     });
+    this.startPinTimer(sourceKey, pinImmediately);
   }
 
-  showTargetInfo(event: MouseEvent, row: AtqRow): void {
+  showTargetInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
+    const position = this.tooltipPosition(event);
+    const sourceKey = `${row.id}:target`;
+
     this.hoverDetail.set({
+      sourceKey,
       kind: 'target',
       row,
       title: `Target for ${row.code}`,
       body: row.targetExplanation,
       ticket: null,
       loading: false,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      pinned: pinImmediately,
+      pinning: !pinImmediately,
+      x: position.x,
+      y: position.y,
     });
+    this.startPinTimer(sourceKey, pinImmediately);
   }
 
-  showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE'): void {
+  showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE', pinImmediately = false): void {
+    const position = this.tooltipPosition(event);
+    const sourceKey = `${row.id}:ticket:${resultName}`;
+
     this.hoverDetail.set({
+      sourceKey,
       kind: 'ticket',
       row,
       title: `${resultName} ticket status`,
       ticket: null,
       loading: true,
+      pinned: pinImmediately,
+      pinning: !pinImmediately,
       resultName,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      x: position.x,
+      y: position.y,
     });
+    this.startPinTimer(sourceKey, pinImmediately);
 
     this.dashboardService.getActiveTicket(row.id, this.filters).subscribe({
       next: (ticket) => {
         const current = this.hoverDetail();
-        if (current?.kind !== 'ticket' || current.row.id !== row.id || current.resultName !== resultName) {
+        if (current?.sourceKey !== sourceKey) {
           return;
         }
 
@@ -130,7 +155,7 @@ export class AppComponent implements OnInit {
       },
       error: () => {
         const current = this.hoverDetail();
-        if (current?.kind === 'ticket' && current.row.id === row.id && current.resultName === resultName) {
+        if (current?.sourceKey === sourceKey) {
           this.hoverDetail.set({ ...current, ticket: null, loading: false });
         }
       },
@@ -142,16 +167,47 @@ export class AppComponent implements OnInit {
     if (!current) {
       return;
     }
+    if (current.pinned) {
+      return;
+    }
+    const position = this.tooltipPosition(event);
 
     this.hoverDetail.set({
       ...current,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      x: position.x,
+      y: position.y,
     });
   }
 
   hideTooltip(): void {
+    const current = this.hoverDetail();
+    if (current?.pinned) {
+      return;
+    }
+    this.clearPinTimer();
     this.hoverDetail.set(null);
+  }
+
+  closeTooltip(): void {
+    this.clearPinTimer();
+    this.hoverDetail.set(null);
+  }
+
+  ticketUrl(ticket: ActiveTicket): string {
+    return `https://issuetracker.google.com/issues?q=${encodeURIComponent(ticket.ticketId)}`;
+  }
+
+  newTicketUrl(hover: HoverState): string {
+    const title = `${hover.row.code} ${hover.resultName ?? ''} follow-up`.trim();
+    const details = [
+      `ATQ: ${hover.row.code}`,
+      `Domain: ${hover.row.domain}`,
+      `Build: ${this.filters.buildVersion}`,
+      hover.resultName ? `Result: ${hover.resultName}` : '',
+      `Status: ${this.rowStatusLabel(hover.row)}`,
+    ].filter(Boolean).join('\n');
+
+    return `https://issuetracker.google.com/issues/new?title=${encodeURIComponent(title)}&description=${encodeURIComponent(details)}`;
   }
 
   rowHasFailure(row: AtqRow): boolean {
@@ -203,5 +259,46 @@ export class AppComponent implements OnInit {
       default:
         return row[result].status === 'neutral' ? 3 : 4;
     }
+  }
+
+  private startPinTimer(sourceKey: string, pinImmediately: boolean): void {
+    this.clearPinTimer();
+    if (pinImmediately) {
+      return;
+    }
+
+    this.pinTimer = setTimeout(() => {
+      const current = this.hoverDetail();
+      if (current?.sourceKey !== sourceKey) {
+        return;
+      }
+
+      this.hoverDetail.set({
+        ...current,
+        pinned: true,
+        pinning: false,
+      });
+      this.pinTimer = null;
+    }, 400);
+  }
+
+  private clearPinTimer(): void {
+    if (!this.pinTimer) {
+      return;
+    }
+
+    clearTimeout(this.pinTimer);
+    this.pinTimer = null;
+  }
+
+  private tooltipPosition(event: MouseEvent): { x: number; y: number } {
+    const margin = 16;
+    const popoverWidth = 360;
+    const popoverHeight = 260;
+
+    return {
+      x: Math.max(margin, Math.min(event.clientX + 18, window.innerWidth - popoverWidth - margin)),
+      y: Math.max(margin, Math.min(event.clientY + 18, window.innerHeight - popoverHeight - margin)),
+    };
   }
 }

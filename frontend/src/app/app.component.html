@@ -97,7 +97,7 @@
             class="atq-cell"
             (mouseenter)="showAtqInfo($event, row)"
             (mousemove)="moveTooltip($event)"
-            (click)="showAtqInfo($event, row)"
+            (click)="showAtqInfo($event, row, true)"
             (mouseleave)="hideTooltip()"
           >
             <div class="atq-heading">
@@ -115,7 +115,7 @@
             class="target-cell"
             (mouseenter)="showTargetInfo($event, row)"
             (mousemove)="moveTooltip($event)"
-            (click)="showTargetInfo($event, row)"
+            (click)="showTargetInfo($event, row, true)"
             (mouseleave)="hideTooltip()"
           >
             <span>Target</span>
@@ -130,7 +130,7 @@
             [class.issue-missing]="resultSeverity(row, 'classic') === 'missing'"
             (mouseenter)="showTicket($event, row, 'Classic')"
             (mousemove)="moveTooltip($event)"
-            (click)="showTicket($event, row, 'Classic')"
+            (click)="showTicket($event, row, 'Classic', true)"
             (mouseleave)="hideTooltip()"
           >
             <span>{{ row.classic.label }}</span>
@@ -145,7 +145,7 @@
             [class.issue-missing]="resultSeverity(row, 'le') === 'missing'"
             (mouseenter)="showTicket($event, row, 'LE')"
             (mousemove)="moveTooltip($event)"
-            (click)="showTicket($event, row, 'LE')"
+            (click)="showTicket($event, row, 'LE', true)"
             (mouseleave)="hideTooltip()"
           >
             <span>{{ row.le.label }}</span>
@@ -158,10 +158,16 @@
 
   <aside
     class="detail-popover"
+    [class.is-pinned]="hover.pinned"
     *ngIf="hoverDetail() as hover"
     [style.left.px]="hover.x"
     [style.top.px]="hover.y"
   >
+    <span class="pin-progress" *ngIf="hover.pinning && !hover.pinned" aria-hidden="true"></span>
+    <button class="popover-close" type="button" *ngIf="hover.pinned" (click)="closeTooltip()" aria-label="Close tooltip">
+      ×
+    </button>
+
     <div class="ticket-heading">
       <span *ngIf="hover.kind === 'atq'">ATQ explanation</span>
       <span *ngIf="hover.kind === 'target'">Target explanation</span>
@@ -201,11 +207,18 @@
             <dd>{{ hover.ticket.updatedAt }}</dd>
           </div>
         </dl>
+        <div class="ticket-actions" *ngIf="hover.pinned">
+          <a [href]="ticketUrl(hover.ticket)" target="_blank" rel="noreferrer">Open ticket</a>
+          <a [href]="newTicketUrl(hover)" target="_blank" rel="noreferrer">Add related ticket</a>
+        </div>
       </ng-container>
 
       <p class="ticket-loading" *ngIf="!hover.loading && !hover.ticket">
         {{ rowHasFailure(hover.row) ? 'No active ticket - needs triage' : 'No active ticket' }}
       </p>
+      <div class="ticket-actions" *ngIf="hover.pinned && !hover.loading && !hover.ticket">
+        <a [href]="newTicketUrl(hover)" target="_blank" rel="noreferrer">Add ticket</a>
+      </div>
     </ng-container>
   </aside>
 </main>

@@ -373,6 +373,10 @@
   border-radius: 8px;
   box-shadow: 0 18px 44px rgba(5, 18, 41, 0.32);
 
+  &.is-pinned {
+    pointer-events: auto;
+  }
+
   h3 {
     margin: 4px 0 14px;
     font-size: 18px;
@@ -400,6 +404,41 @@
   }
 }
 
+.pin-progress {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(113, 208, 246, 0.5);
+  border-radius: 999px;
+  opacity: 0.55;
+  animation: pin-spin 400ms linear forwards;
+}
+
+.popover-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: #d9e4ef;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 999px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+}
+
 .detail-body {
   margin: 8px 0 0;
   color: #d9e4ef;
@@ -423,6 +462,45 @@
   margin: 12px 0 0;
   color: #71d0f6;
   font-weight: 900;
+}
+
+.ticket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    color: #071527;
+    font-size: 13px;
+    font-weight: 850;
+    text-decoration: none;
+    background: #71d0f6;
+    border-radius: 999px;
+
+    &:hover {
+      background: #9fe1fb;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #d9e4ef;
+      outline-offset: 2px;
+    }
+  }
+}
+
+@keyframes pin-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 1050px) {
