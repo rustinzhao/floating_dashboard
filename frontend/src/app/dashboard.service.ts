@@ -25,6 +25,7 @@ export interface AtqRow {
   description: string;
   domain: string;
   target: string;
+  hasActiveTicket: boolean;
   classic: ResultMetric;
   le: ResultMetric;
 }

@@ -47,7 +47,14 @@ export class AppComponent implements OnInit {
 
   readonly visibleRows = computed(() => {
     const rows = this.dashboard()?.rows ?? [];
-    return rows.filter((row) => row.domain === this.selectedDomain());
+    return rows
+      .map((row, index) => ({ row, index }))
+      .filter(({ row }) => row.domain === this.selectedDomain())
+      .sort((left, right) => {
+        const rankDiff = this.sortRank(left.row) - this.sortRank(right.row);
+        return rankDiff || left.index - right.index;
+      })
+      .map(({ row }) => row);
   });
 
   ngOnInit(): void {
@@ -120,5 +127,45 @@ export class AppComponent implements OnInit {
 
   hideTicket(): void {
     this.hoveredTicket.set(null);
+  }
+
+  rowHasFailure(row: AtqRow): boolean {
+    return row.classic.status === 'fail' || row.le.status === 'fail';
+  }
+
+  rowStatusLabel(row: AtqRow): string {
+    if (this.rowHasFailure(row) && !row.hasActiveTicket) {
+      return 'Needs ticket';
+    }
+
+    if (this.rowHasFailure(row) && row.hasActiveTicket) {
+      return 'Ticket active';
+    }
+
+    if (row.hasActiveTicket) {
+      return 'Monitoring';
+    }
+
+    return 'Clear';
+  }
+
+  private sortRank(row: AtqRow): number {
+    if (this.rowHasFailure(row) && !row.hasActiveTicket) {
+      return 0;
+    }
+
+    if (this.rowHasFailure(row) && row.hasActiveTicket) {
+      return 1;
+    }
+
+    if (row.classic.status === 'no-data' || row.le.status === 'no-data') {
+      return row.hasActiveTicket ? 3 : 2;
+    }
+
+    if (row.classic.status === 'neutral' || row.le.status === 'neutral') {
+      return 4;
+    }
+
+    return 5;
   }
 }

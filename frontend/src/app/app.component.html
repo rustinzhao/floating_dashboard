@@ -97,6 +97,8 @@
 
         <article
           class="metric-row"
+          [class.has-failure]="rowHasFailure(row)"
+          [class.has-active-ticket]="row.hasActiveTicket"
           *ngFor="let row of visibleRows()"
           (mouseenter)="showTicket($event, row)"
           (mousemove)="moveTicket($event)"
@@ -104,7 +106,16 @@
           (mouseleave)="hideTicket()"
         >
           <div class="atq-cell">
-            <strong>{{ row.code }}</strong>
+            <div class="atq-heading">
+              <strong>{{ row.code }}</strong>
+              <span
+                class="row-status"
+                [class.needs-ticket]="rowHasFailure(row) && !row.hasActiveTicket"
+                [class.ticket-active]="row.hasActiveTicket"
+              >
+                {{ rowStatusLabel(row) }}
+              </span>
+            </div>
             <span>{{ row.description }}</span>
           </div>
 
@@ -134,7 +145,7 @@
     [style.top.px]="hover.y"
   >
     <div class="ticket-heading">
-      <span>Active ticket</span>
+      <span>{{ hover.loading ? 'Checking ticket' : hover.ticket ? 'Active ticket' : 'Ticket status' }}</span>
       <strong>{{ hover.row.code }}</strong>
     </div>
 
@@ -163,6 +174,8 @@
       </dl>
     </ng-container>
 
-    <p class="ticket-loading" *ngIf="!hover.loading && !hover.ticket">No active ticket</p>
+    <p class="ticket-loading" *ngIf="!hover.loading && !hover.ticket">
+      {{ rowHasFailure(hover.row) ? 'No active ticket - needs triage' : 'No active ticket' }}
+    </p>
   </aside>
 </main>

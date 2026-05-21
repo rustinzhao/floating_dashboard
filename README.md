@@ -37,6 +37,14 @@ Open `http://localhost:4200`.
 
 The frontend calls the active ticket endpoint when hovering an ATQ row.
 
+Rows are sorted client-side by action priority:
+
+1. failing ATQs with no active ticket
+2. failing ATQs with an active ticket
+3. non-failing rows
+
+The mock API returns different results and ticket ownership for each build version so the sorting behavior can be tested locally.
+
 ## BigQuery Hook
 
 The backend uses mock data unless BigQuery mode is enabled:

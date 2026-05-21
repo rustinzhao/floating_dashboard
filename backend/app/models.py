@@ -29,6 +29,7 @@ class AtqRow(BaseModel):
     description: str
     domain: str
     target: str
+    hasActiveTicket: bool = False
     classic: ResultMetric
     le: ResultMetric
 
