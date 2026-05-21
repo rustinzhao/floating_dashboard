@@ -78,6 +78,8 @@ export class AppComponent implements OnInit {
   }
 
   showAtqInfo(event: MouseEvent, row: AtqRow): void {
+    const position = this.tooltipPosition(event);
+
     this.hoverDetail.set({
       kind: 'atq',
       row,
@@ -85,12 +87,14 @@ export class AppComponent implements OnInit {
       body: row.atqExplanation,
       ticket: null,
       loading: false,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      x: position.x,
+      y: position.y,
     });
   }
 
   showTargetInfo(event: MouseEvent, row: AtqRow): void {
+    const position = this.tooltipPosition(event);
+
     this.hoverDetail.set({
       kind: 'target',
       row,
@@ -98,12 +102,14 @@ export class AppComponent implements OnInit {
       body: row.targetExplanation,
       ticket: null,
       loading: false,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      x: position.x,
+      y: position.y,
     });
   }
 
   showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE'): void {
+    const position = this.tooltipPosition(event);
+
     this.hoverDetail.set({
       kind: 'ticket',
       row,
@@ -111,8 +117,8 @@ export class AppComponent implements OnInit {
       ticket: null,
       loading: true,
       resultName,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      x: position.x,
+      y: position.y,
     });
 
     this.dashboardService.getActiveTicket(row.id, this.filters).subscribe({
@@ -142,11 +148,12 @@ export class AppComponent implements OnInit {
     if (!current) {
       return;
     }
+    const position = this.tooltipPosition(event);
 
     this.hoverDetail.set({
       ...current,
-      x: event.clientX + 18,
-      y: event.clientY + 18,
+      x: position.x,
+      y: position.y,
     });
   }
 
@@ -203,5 +210,16 @@ export class AppComponent implements OnInit {
       default:
         return row[result].status === 'neutral' ? 3 : 4;
     }
+  }
+
+  private tooltipPosition(event: MouseEvent): { x: number; y: number } {
+    const margin = 16;
+    const popoverWidth = 360;
+    const popoverHeight = 250;
+
+    return {
+      x: Math.max(margin, Math.min(event.clientX + 18, window.innerWidth - popoverWidth - margin)),
+      y: Math.max(margin, Math.min(event.clientY + 18, window.innerHeight - popoverHeight - margin)),
+    };
   }
 }

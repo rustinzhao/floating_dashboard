@@ -104,6 +104,10 @@
               <strong>{{ row.code }}</strong>
               <span
                 class="row-status"
+                [class.status-critical]="rowHasFailure(row) && !row.hasActiveTicket"
+                [class.status-warning]="rowHasFailure(row) && row.hasActiveTicket"
+                [class.status-monitoring]="!rowHasFailure(row) && row.hasActiveTicket"
+                [class.status-clear]="!rowHasFailure(row) && !row.hasActiveTicket"
               >
                 {{ rowStatusLabel(row) }}
               </span>
