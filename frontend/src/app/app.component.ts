@@ -279,7 +279,7 @@ export class AppComponent implements OnInit {
         pinning: false,
       });
       this.pinTimer = null;
-    }, 400);
+    }, 600);
   }
 
   private clearPinTimer(): void {
