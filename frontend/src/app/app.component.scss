@@ -237,16 +237,6 @@
     border-color: rgba(29, 104, 151, 0.45);
     box-shadow: 0 0 0 2px rgba(29, 104, 151, 0.1);
   }
-
-  &.has-failure:not(.has-active-ticket) > div {
-    border-color: rgba(201, 71, 71, 0.44);
-    background: rgba(255, 248, 248, 0.84);
-  }
-
-  &.has-failure.has-active-ticket > div {
-    border-color: rgba(210, 139, 37, 0.34);
-    background: rgba(255, 251, 242, 0.78);
-  }
 }
 
 .domain-cell {
@@ -290,24 +280,14 @@
 .row-status {
   max-width: 126px;
   padding: 5px 8px;
-  color: #475569;
+  color: #334155;
   font-size: 11px;
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
-  background: #e6e2d8;
+  background: #e5e7eb;
   border-radius: 999px;
-
-  &.needs-ticket {
-    color: #842029;
-    background: #f8d7da;
-  }
-
-  &.ticket-active {
-    color: #7a4b00;
-    background: #ffe8ba;
-  }
 }
 
 .target-cell,
@@ -332,12 +312,43 @@
   color: #19825f;
 }
 
-.result-cell.fail strong {
-  color: #c94747;
+.metric-row > .result-cell.issue-critical {
+  background: #ef9aa0;
+  border-color: #a91925;
+  box-shadow:
+    inset 4px 0 0 #9f111b,
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+
+  span,
+  strong {
+    color: #7c0c15;
+  }
 }
 
-.result-cell.no-data strong {
-  color: #273143;
+.metric-row > .result-cell.issue-warning {
+  background: #e8b74f;
+  border-color: #a76400;
+  box-shadow:
+    inset 4px 0 0 #9a5a00,
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+
+  span,
+  strong {
+    color: #5c3500;
+  }
+}
+
+.metric-row > .result-cell.issue-missing {
+  background: #9fc0dd;
+  border-color: #4f769e;
+  box-shadow:
+    inset 4px 0 0 #41698f,
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+
+  span,
+  strong {
+    color: #183852;
+  }
 }
 
 .empty-state {

@@ -87,8 +87,6 @@
 
         <article
           class="metric-row"
-          [class.has-failure]="rowHasFailure(row)"
-          [class.has-active-ticket]="row.hasActiveTicket"
           *ngFor="let row of visibleRows()"
         >
           <div class="domain-cell">
@@ -106,8 +104,6 @@
               <strong>{{ row.code }}</strong>
               <span
                 class="row-status"
-                [class.needs-ticket]="rowHasFailure(row) && !row.hasActiveTicket"
-                [class.ticket-active]="row.hasActiveTicket"
               >
                 {{ rowStatusLabel(row) }}
               </span>
@@ -129,6 +125,9 @@
           <div
             class="result-cell"
             [class]="row.classic.status"
+            [class.issue-critical]="resultSeverity(row, 'classic') === 'critical'"
+            [class.issue-warning]="resultSeverity(row, 'classic') === 'warning'"
+            [class.issue-missing]="resultSeverity(row, 'classic') === 'missing'"
             (mouseenter)="showTicket($event, row, 'Classic')"
             (mousemove)="moveTooltip($event)"
             (click)="showTicket($event, row, 'Classic')"
@@ -141,6 +140,9 @@
           <div
             class="result-cell"
             [class]="row.le.status"
+            [class.issue-critical]="resultSeverity(row, 'le') === 'critical'"
+            [class.issue-warning]="resultSeverity(row, 'le') === 'warning'"
+            [class.issue-missing]="resultSeverity(row, 'le') === 'missing'"
             (mouseenter)="showTicket($event, row, 'LE')"
             (mousemove)="moveTooltip($event)"
             (click)="showTicket($event, row, 'LE')"

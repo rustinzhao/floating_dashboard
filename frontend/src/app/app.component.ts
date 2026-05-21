@@ -174,23 +174,34 @@ export class AppComponent implements OnInit {
     return 'Clear';
   }
 
+  resultSeverity(row: AtqRow, result: 'classic' | 'le'): 'critical' | 'warning' | 'missing' | 'normal' {
+    const status = row[result].status;
+
+    if (status === 'fail') {
+      return row.hasActiveTicket ? 'warning' : 'critical';
+    }
+
+    if (status === 'no-data') {
+      return 'missing';
+    }
+
+    return 'normal';
+  }
+
   private sortRank(row: AtqRow): number {
-    if (this.rowHasFailure(row) && !row.hasActiveTicket) {
-      return 0;
-    }
+    return Math.min(this.resultRank(row, 'classic'), this.resultRank(row, 'le'));
+  }
 
-    if (this.rowHasFailure(row) && row.hasActiveTicket) {
-      return 1;
+  private resultRank(row: AtqRow, result: 'classic' | 'le'): number {
+    switch (this.resultSeverity(row, result)) {
+      case 'critical':
+        return 0;
+      case 'warning':
+        return 1;
+      case 'missing':
+        return 2;
+      default:
+        return row[result].status === 'neutral' ? 3 : 4;
     }
-
-    if (row.classic.status === 'no-data' || row.le.status === 'no-data') {
-      return row.hasActiveTicket ? 3 : 2;
-    }
-
-    if (row.classic.status === 'neutral' || row.le.status === 'neutral') {
-      return 4;
-    }
-
-    return 5;
   }
 }
