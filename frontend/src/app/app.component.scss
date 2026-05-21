@@ -451,6 +451,7 @@
   display: flex;
   justify-content: space-between;
   gap: 14px;
+  padding-right: 34px;
   color: #cbd9e8;
   font-size: 13px;
   font-weight: 850;
@@ -459,10 +460,6 @@
   strong {
     white-space: nowrap;
   }
-}
-
-.detail-popover.is-pinned .ticket-heading {
-  padding-right: 34px;
 }
 
 .ticket-id,
