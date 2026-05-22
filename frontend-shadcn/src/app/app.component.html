@@ -213,6 +213,7 @@
     *ngIf="hoverDetail() as hover"
     [style.left.px]="hover.x"
     [style.top.px]="hover.y"
+    [style.max-height.px]="hover.maxHeight"
     (mouseenter)="enterTooltip()"
     (mouseleave)="leaveTooltip()"
   >

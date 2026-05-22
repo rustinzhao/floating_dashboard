@@ -27,6 +27,7 @@ interface HoverState {
   resultName?: 'Classic' | 'LE';
   x: number;
   y: number;
+  maxHeight: number;
 }
 
 @Component({
@@ -125,6 +126,7 @@ export class AppComponent implements OnInit {
       pinning: !pinImmediately,
       x: position.x,
       y: position.y,
+      maxHeight: position.maxHeight,
     });
     this.startPinTimer(sourceKey, pinImmediately);
   }
@@ -149,6 +151,7 @@ export class AppComponent implements OnInit {
       pinning: !pinImmediately,
       x: position.x,
       y: position.y,
+      maxHeight: position.maxHeight,
     });
     this.startPinTimer(sourceKey, pinImmediately);
   }
@@ -173,6 +176,7 @@ export class AppComponent implements OnInit {
       resultName,
       x: position.x,
       y: position.y,
+      maxHeight: position.maxHeight,
     });
     this.startPinTimer(sourceKey, pinImmediately);
     this.loadTickets(sourceKey, row);
@@ -192,6 +196,7 @@ export class AppComponent implements OnInit {
       ...current,
       x: position.x,
       y: position.y,
+      maxHeight: position.maxHeight,
     });
   }
 
@@ -420,33 +425,50 @@ export class AppComponent implements OnInit {
     this.closeTimer = null;
   }
 
-  private tooltipPosition(event: MouseEvent, kind: HoverKind): { x: number; y: number } {
+  private tooltipPosition(event: MouseEvent, kind: HoverKind): { x: number; y: number; maxHeight: number } {
     const margin = 16;
     const gap = 12;
     const popoverWidth = 390;
-    const popoverHeight = kind === 'ticket' ? 620 : 210;
+    const minimumVisibleHeight = kind === 'ticket' ? 180 : 160;
+    const preferredHeight = kind === 'ticket' ? 620 : 240;
     const source = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
     const rect = source?.getBoundingClientRect();
     let x = event.clientX + gap;
     let y = event.clientY + gap;
 
-    if (rect) {
+    if (kind === 'ticket') {
+      const spaceBelow = window.innerHeight - event.clientY - gap - margin;
+      const spaceAbove = event.clientY - gap - margin;
+
+      if (x + popoverWidth + margin > window.innerWidth) {
+        x = event.clientX - popoverWidth - gap;
+      }
+
+      if (spaceBelow >= minimumVisibleHeight || spaceBelow >= spaceAbove) {
+        y = event.clientY + gap;
+      } else {
+        y = event.clientY - minimumVisibleHeight - gap;
+      }
+    } else if (rect) {
       const roomRight = window.innerWidth - rect.right - margin;
       const roomLeft = rect.left - margin;
       x = roomRight >= popoverWidth + gap || roomRight >= roomLeft
         ? rect.right + gap
         : rect.left - popoverWidth - gap;
-      y = kind === 'ticket'
-        ? rect.top + (rect.height / 2) - (popoverHeight / 2)
-        : rect.top;
+      y = rect.top;
     }
 
     const maxX = Math.max(margin, window.innerWidth - popoverWidth - margin);
-    const maxY = Math.max(margin, window.innerHeight - popoverHeight - margin);
+    const maxY = Math.max(margin, window.innerHeight - minimumVisibleHeight - margin);
+    const clampedY = Math.max(margin, Math.min(y, maxY));
 
     return {
       x: Math.max(margin, Math.min(x, maxX)),
-      y: Math.max(margin, Math.min(y, maxY)),
+      y: clampedY,
+      maxHeight: Math.min(
+        preferredHeight,
+        Math.max(minimumVisibleHeight, window.innerHeight - clampedY - margin),
+      ),
     };
   }
 }
