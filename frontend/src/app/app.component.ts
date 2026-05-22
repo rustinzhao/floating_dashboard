@@ -107,7 +107,7 @@ export class AppComponent implements OnInit {
 
   showAtqInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
     this.clearCloseTimer();
-    const position = this.tooltipPosition(event);
+    const position = this.tooltipPosition(event, 'atq');
     const sourceKey = `${row.id}:atq`;
     if (this.retainPinnedSource(sourceKey)) {
       return;
@@ -131,7 +131,7 @@ export class AppComponent implements OnInit {
 
   showTargetInfo(event: MouseEvent, row: AtqRow, pinImmediately = false): void {
     this.clearCloseTimer();
-    const position = this.tooltipPosition(event);
+    const position = this.tooltipPosition(event, 'target');
     const sourceKey = `${row.id}:target`;
     if (this.retainPinnedSource(sourceKey)) {
       return;
@@ -155,7 +155,7 @@ export class AppComponent implements OnInit {
 
   showTicket(event: MouseEvent, row: AtqRow, resultName: 'Classic' | 'LE', pinImmediately = false): void {
     this.clearCloseTimer();
-    const position = this.tooltipPosition(event);
+    const position = this.tooltipPosition(event, 'ticket');
     const sourceKey = `${row.id}:ticket:${resultName}`;
     if (this.retainPinnedSource(sourceKey)) {
       return;
@@ -186,7 +186,7 @@ export class AppComponent implements OnInit {
     if (current.pinned) {
       return;
     }
-    const position = this.tooltipPosition(event);
+    const position = this.tooltipPosition(event, current.kind);
 
     this.hoverDetail.set({
       ...current,
@@ -420,14 +420,33 @@ export class AppComponent implements OnInit {
     this.closeTimer = null;
   }
 
-  private tooltipPosition(event: MouseEvent): { x: number; y: number } {
+  private tooltipPosition(event: MouseEvent, kind: HoverKind): { x: number; y: number } {
     const margin = 16;
+    const gap = 12;
     const popoverWidth = 360;
-    const popoverHeight = 620;
+    const popoverHeight = kind === 'ticket' ? 620 : 210;
+    const source = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const rect = source?.getBoundingClientRect();
+    let x = event.clientX + gap;
+    let y = event.clientY + gap;
+
+    if (rect) {
+      const roomRight = window.innerWidth - rect.right - margin;
+      const roomLeft = rect.left - margin;
+      x = roomRight >= popoverWidth + gap || roomRight >= roomLeft
+        ? rect.right + gap
+        : rect.left - popoverWidth - gap;
+      y = kind === 'ticket'
+        ? rect.top + (rect.height / 2) - (popoverHeight / 2)
+        : rect.top;
+    }
+
+    const maxX = Math.max(margin, window.innerWidth - popoverWidth - margin);
+    const maxY = Math.max(margin, window.innerHeight - popoverHeight - margin);
 
     return {
-      x: Math.max(margin, Math.min(event.clientX + 18, window.innerWidth - popoverWidth - margin)),
-      y: Math.max(margin, Math.min(event.clientY + 18, window.innerHeight - popoverHeight - margin)),
+      x: Math.max(margin, Math.min(x, maxX)),
+      y: Math.max(margin, Math.min(y, maxY)),
     };
   }
 }
