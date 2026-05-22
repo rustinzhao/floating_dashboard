@@ -431,31 +431,15 @@ export class AppComponent implements OnInit {
     const popoverWidth = 390;
     const minimumVisibleHeight = kind === 'ticket' ? 180 : 160;
     const preferredHeight = kind === 'ticket' ? 620 : 240;
-    const source = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
-    const rect = source?.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - event.clientY - gap - margin;
+    const spaceAbove = event.clientY - gap - margin;
     let x = event.clientX + gap;
-    let y = event.clientY + gap;
+    let y = spaceBelow >= minimumVisibleHeight || spaceBelow >= spaceAbove
+      ? event.clientY + gap
+      : event.clientY - minimumVisibleHeight - gap;
 
-    if (kind === 'ticket') {
-      const spaceBelow = window.innerHeight - event.clientY - gap - margin;
-      const spaceAbove = event.clientY - gap - margin;
-
-      if (x + popoverWidth + margin > window.innerWidth) {
-        x = event.clientX - popoverWidth - gap;
-      }
-
-      if (spaceBelow >= minimumVisibleHeight || spaceBelow >= spaceAbove) {
-        y = event.clientY + gap;
-      } else {
-        y = event.clientY - minimumVisibleHeight - gap;
-      }
-    } else if (rect) {
-      const roomRight = window.innerWidth - rect.right - margin;
-      const roomLeft = rect.left - margin;
-      x = roomRight >= popoverWidth + gap || roomRight >= roomLeft
-        ? rect.right + gap
-        : rect.left - popoverWidth - gap;
-      y = rect.top;
+    if (x + popoverWidth + margin > window.innerWidth) {
+      x = event.clientX - popoverWidth - gap;
     }
 
     const maxX = Math.max(margin, window.innerWidth - popoverWidth - margin);
