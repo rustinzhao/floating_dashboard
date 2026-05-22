@@ -1,51 +1,77 @@
 <main class="dashboard-shell">
-  <header class="topbar">
-    <div class="title-block">
-      <p class="eyebrow">Device Certification</p>
-      <h1>Largo ATQ</h1>
+  <aside class="app-sidebar" aria-label="Largo ATQ navigation">
+    <div class="brand-block">
+      <span class="brand-mark">LA</span>
+      <div>
+        <strong>Largo ATQ</strong>
+        <span>Certification dashboard</span>
+      </div>
     </div>
 
-    <form class="filters" (change)="loadDashboard()">
-      <label class="filter-card">
-        <span>DC Service Version</span>
-        <select name="serviceVersion" [(ngModel)]="filters.serviceVersion">
-          <option value="">Select...</option>
-          <option *ngFor="let version of dashboard()?.filterOptions?.serviceVersions" [value]="version">
-            {{ version }}
-          </option>
-        </select>
-      </label>
+    <nav class="side-nav">
+      <button class="is-active" type="button">Dashboard</button>
+      <button type="button">Release health</button>
+      <button type="button">ATQ domains</button>
+      <button type="button">Ticket queue</button>
+    </nav>
 
-      <label class="filter-card">
-        <span>Phone Model</span>
-        <select name="phoneModel" [(ngModel)]="filters.phoneModel">
-          <option value="">Select...</option>
-          <option *ngFor="let model of dashboard()?.filterOptions?.phoneModels" [value]="model">
-            {{ model }}
-          </option>
-        </select>
-      </label>
+    <div class="sidebar-card">
+      <span>Current slice</span>
+      <strong>{{ filters.buildVersion }}</strong>
+      <p>{{ filters.phoneModel || 'All phone models' }}</p>
+    </div>
+  </aside>
 
-      <label class="filter-card">
-        <span>Build Version</span>
-        <select name="buildVersion" [(ngModel)]="filters.buildVersion">
-          <option *ngFor="let version of dashboard()?.filterOptions?.buildVersions" [value]="version">
-            {{ version }}
-          </option>
-        </select>
-      </label>
-    </form>
-  </header>
+  <section class="content-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Device Certification</p>
+        <h1>Largo ATQ</h1>
+        <p class="page-subtitle">Top 40 ATQ triage, release metrics, and linked ticket context.</p>
+      </div>
 
-  <section class="overview" aria-label="ATQ overview">
-    <div class="section-bar">Overview</div>
+      <form class="filters" (change)="loadDashboard()">
+        <label class="filter-card">
+          <span>DC service</span>
+          <select name="serviceVersion" [(ngModel)]="filters.serviceVersion">
+            <option value="">All services</option>
+            <option *ngFor="let version of dashboard()?.filterOptions?.serviceVersions" [value]="version">
+              {{ version }}
+            </option>
+          </select>
+        </label>
 
-    <div class="overview-panels">
-      <article class="summary-panel top40">
+        <label class="filter-card">
+          <span>Phone model</span>
+          <select name="phoneModel" [(ngModel)]="filters.phoneModel">
+            <option value="">All models</option>
+            <option *ngFor="let model of dashboard()?.filterOptions?.phoneModels" [value]="model">
+              {{ model }}
+            </option>
+          </select>
+        </label>
+
+        <label class="filter-card">
+          <span>Build</span>
+          <select name="buildVersion" [(ngModel)]="filters.buildVersion">
+            <option *ngFor="let version of dashboard()?.filterOptions?.buildVersions" [value]="version">
+              {{ version }}
+            </option>
+          </select>
+        </label>
+      </form>
+    </header>
+
+    <section class="overview" aria-label="ATQ overview">
+      <article class="summary-panel">
         <div class="panel-heading">
-          <h2>Top 40</h2>
-          <button type="button" title="Open Top 40 diagnostics">⌕</button>
+          <div>
+            <span>Top 40</span>
+            <h2>Release gate</h2>
+          </div>
+          <button type="button" title="Open Top 40 diagnostics">View</button>
         </div>
+
         <div class="summary-metrics">
           <div class="summary-metric" *ngFor="let metric of dashboard()?.overview?.top40">
             <span>{{ metric.label }}</span>
@@ -54,11 +80,15 @@
         </div>
       </article>
 
-      <article class="summary-panel non-top40">
+      <article class="summary-panel">
         <div class="panel-heading">
-          <h2>Non-Top 40</h2>
-          <button type="button" title="Open Non-Top 40 diagnostics">⌕</button>
+          <div>
+            <span>Non-Top 40</span>
+            <h2>Watch list</h2>
+          </div>
+          <button type="button" title="Open Non-Top 40 diagnostics">View</button>
         </div>
+
         <div class="summary-metrics">
           <div class="summary-metric" *ngFor="let metric of dashboard()?.overview?.nonTop40">
             <span>{{ metric.label }}</span>
@@ -66,15 +96,15 @@
           </div>
         </div>
       </article>
-    </div>
-  </section>
+    </section>
 
-  <section class="table-section" aria-label="Top 40 ATQ results">
-    <div class="section-bar">Top 40</div>
-
-    <div class="workspace">
+    <section class="table-section" aria-label="Top 40 ATQ results">
       <div class="table-toolbar">
-        <span>Sort</span>
+        <div>
+          <p class="eyebrow">Top 40 ATQs</p>
+          <h2>Current failures and missing coverage</h2>
+        </div>
+
         <div class="sort-segment" role="group" aria-label="Sort ATQ rows">
           <button
             type="button"
@@ -107,10 +137,7 @@
         <div class="empty-state" *ngIf="loading()">Loading dashboard...</div>
         <div class="empty-state error-state" *ngIf="errorMessage()">{{ errorMessage() }}</div>
 
-        <article
-          class="metric-row"
-          *ngFor="let row of visibleRows()"
-        >
+        <article class="metric-row" *ngFor="let row of visibleRows()">
           <div class="domain-cell">
             <span>{{ row.domain }}</span>
           </div>
@@ -125,11 +152,7 @@
           >
             <div class="atq-heading">
               <strong>{{ row.code }}</strong>
-              <span
-                class="row-status"
-              >
-                {{ rowStatusLabel(row) }}
-              </span>
+              <span class="row-status">{{ rowStatusLabel(row) }}</span>
             </div>
             <span>{{ row.description }}</span>
           </div>
@@ -148,8 +171,8 @@
 
           <div
             class="result-cell"
-            [attr.data-hover-source]="row.id + ':ticket:Classic'"
             [class]="row.classic.status"
+            [attr.data-hover-source]="row.id + ':ticket:Classic'"
             [class.issue-critical]="resultSeverity(row, 'classic') === 'critical'"
             [class.issue-warning]="resultSeverity(row, 'classic') === 'warning'"
             [class.issue-missing]="resultSeverity(row, 'classic') === 'missing'"
@@ -165,8 +188,8 @@
 
           <div
             class="result-cell"
-            [attr.data-hover-source]="row.id + ':ticket:LE'"
             [class]="row.le.status"
+            [attr.data-hover-source]="row.id + ':ticket:LE'"
             [class.issue-critical]="resultSeverity(row, 'le') === 'critical'"
             [class.issue-warning]="resultSeverity(row, 'le') === 'warning'"
             [class.issue-missing]="resultSeverity(row, 'le') === 'missing'"
@@ -181,7 +204,7 @@
           </div>
         </article>
       </div>
-    </div>
+    </section>
   </section>
 
   <aside
@@ -200,7 +223,7 @@
       </svg>
     </span>
     <button class="popover-close" type="button" *ngIf="hover.pinned" (click)="closeTooltip()" aria-label="Close tooltip">
-      ×
+      x
     </button>
 
     <div class="ticket-heading">
@@ -219,9 +242,6 @@
 
     <ng-container *ngIf="hover.kind === 'ticket'">
       <p class="ticket-id">{{ hover.resultName }} result</p>
-    </ng-container>
-
-    <ng-container *ngIf="hover.kind === 'ticket'">
       <div class="ticket-loading" *ngIf="hover.loading">Loading tickets...</div>
 
       <ng-container *ngIf="!hover.loading && hover.tickets as tickets">
