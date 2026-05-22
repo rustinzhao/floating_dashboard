@@ -4,7 +4,8 @@ Angular + FastAPI shell for an ATQ dashboard with a BigQuery-ready backend data 
 
 ## Project Layout
 
-- `frontend/` - Angular dashboard UI
+- `frontend/` - Angular dashboard UI wired to the FastAPI API
+- `frontend-shadcn/` - standalone shadcn-style Angular prototype with local mock data
 - `backend/` - FastAPI API with mock data by default
 
 ## Run Locally
@@ -19,7 +20,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Start the Angular app:
+Start the original Angular app:
 
 ```bash
 cd frontend
@@ -28,6 +29,16 @@ npm start
 ```
 
 Open `http://localhost:4200`.
+
+Start the shadcn-style prototype:
+
+```bash
+cd frontend-shadcn
+npm install
+npm start
+```
+
+Open `http://localhost:4300`.
 
 ## Current API
 
