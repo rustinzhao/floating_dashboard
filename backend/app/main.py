@@ -1,3 +1,7 @@
+import os
+import random
+import time
+
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,6 +15,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:4200",
         "http://127.0.0.1:4200",
+        "http://localhost:4300",
+        "http://127.0.0.1:4300",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -18,6 +24,21 @@ app.add_middleware(
 )
 
 repository = create_repository()
+
+
+def _simulate_demo_latency(kind: str) -> None:
+    if os.getenv("DATA_SOURCE", "mock").lower() == "bigquery":
+        return
+
+    if os.getenv("DEMO_LATENCY", "true").lower() in {"0", "false", "no", "off"}:
+        return
+
+    ranges = {
+        "dashboard": (0.9, 1.6),
+        "ticket": (0.45, 0.9),
+    }
+    lower, upper = ranges.get(kind, (0.3, 0.6))
+    time.sleep(random.uniform(lower, upper))
 
 
 @app.get("/api/health")
@@ -36,6 +57,7 @@ def get_dashboard(
         phone_model=phone_model,
         build_version=build_version,
     )
+    _simulate_demo_latency("dashboard")
     return repository.get_dashboard(filters)
 
 
@@ -51,6 +73,7 @@ def get_active_ticket(
         phone_model=phone_model,
         build_version=build_version,
     )
+    _simulate_demo_latency("ticket")
     return repository.get_active_ticket(atq_id, filters)
 
 
@@ -66,4 +89,5 @@ def get_ticket_bundle(
         phone_model=phone_model,
         build_version=build_version,
     )
+    _simulate_demo_latency("ticket")
     return repository.get_ticket_bundle(atq_id, filters)

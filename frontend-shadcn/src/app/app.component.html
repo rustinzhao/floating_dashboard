@@ -134,10 +134,26 @@
           <span>LE</span>
         </div>
 
-        <div class="empty-state" *ngIf="loading()">Loading dashboard...</div>
+        <div class="loading-panel" *ngIf="loading()" role="status" aria-live="polite">
+          <div class="loading-copy">
+            <span>BigQuery sync</span>
+            <strong>Querying certification metrics</strong>
+            <p>Fetching release slice, ATQ coverage, and linked ticket state.</p>
+          </div>
+          <div class="loading-bar" aria-hidden="true"></div>
+          <div class="skeleton-rows" aria-hidden="true">
+            <div class="skeleton-row" *ngFor="let item of loadingSkeletonRows">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
         <div class="empty-state error-state" *ngIf="errorMessage()">{{ errorMessage() }}</div>
 
-        <article class="metric-row" *ngFor="let row of visibleRows()">
+        <article class="metric-row" *ngFor="let row of visibleRows()" [hidden]="loading()">
           <div class="domain-cell">
             <span>{{ row.domain }}</span>
           </div>
@@ -231,7 +247,7 @@
       <span *ngIf="hover.kind === 'atq'">ATQ explanation</span>
       <span *ngIf="hover.kind === 'target'">Target explanation</span>
       <span *ngIf="hover.kind === 'ticket'">
-        {{ hover.loading ? 'Checking tickets' : hover.tickets?.childTicket ? 'Child ticket active' : 'Ticket status' }}
+        {{ hover.loading ? 'Resolving tickets' : hover.tickets?.childTicket ? 'Child ticket active' : 'Ticket status' }}
       </span>
       <strong>{{ hover.row.code }}</strong>
     </div>
@@ -243,7 +259,7 @@
 
     <ng-container *ngIf="hover.kind === 'ticket'">
       <p class="ticket-id">{{ hover.resultName }} result</p>
-      <div class="ticket-loading" *ngIf="hover.loading">Loading tickets...</div>
+      <div class="ticket-loading" *ngIf="hover.loading">Resolving ticket links...</div>
 
       <ng-container *ngIf="!hover.loading && hover.tickets as tickets">
         <div class="ticket-stack">

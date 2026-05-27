@@ -504,6 +504,87 @@
   }
 }
 
+.loading-panel {
+  padding: 18px 20px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.loading-copy {
+  display: grid;
+  gap: 4px;
+
+  span {
+    color: #71717a;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #18181b;
+    font-size: 16px;
+    font-weight: 750;
+  }
+
+  p {
+    margin: 0;
+    color: #52525b;
+    font-size: 13px;
+    font-weight: 550;
+  }
+}
+
+.loading-bar {
+  position: relative;
+  height: 4px;
+  margin-top: 16px;
+  overflow: hidden;
+  background: #e4e4e7;
+  border-radius: 999px;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    width: 42%;
+    content: "";
+    background: #18181b;
+    border-radius: inherit;
+    animation: loading-bar-sweep 1400ms ease-in-out infinite;
+  }
+}
+
+.skeleton-rows {
+  display: grid;
+  gap: 1px;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns:
+    minmax(116px, 0.52fr)
+    minmax(250px, 1.22fr)
+    minmax(170px, 0.8fr)
+    minmax(210px, 0.92fr)
+    minmax(210px, 0.92fr);
+  gap: 1px;
+  background: #e4e4e7;
+
+  span {
+    height: 54px;
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.82), transparent),
+      #f4f4f5;
+    background-size: 220px 100%, 100% 100%;
+    animation: skeleton-sweep 1300ms ease-in-out infinite;
+  }
+}
+
 .empty-state {
   padding: 22px;
   color: #71717a;
@@ -743,6 +824,26 @@
   }
 }
 
+@keyframes loading-bar-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(260%);
+  }
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: -220px 0, 0 0;
+  }
+
+  to {
+    background-position: calc(100% + 220px) 0, 0 0;
+  }
+}
+
 @media (max-width: 1120px) {
   .dashboard-shell {
     grid-template-columns: 1fr;
@@ -803,6 +904,14 @@
     > div {
       border-right: 0;
       border-bottom: 1px solid #f4f4f5;
+    }
+  }
+
+  .skeleton-row {
+    grid-template-columns: 1fr;
+
+    span {
+      height: 42px;
     }
   }
 }
