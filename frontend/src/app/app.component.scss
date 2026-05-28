@@ -434,87 +434,6 @@
   }
 }
 
-.loading-panel {
-  padding: 18px 20px 20px;
-  margin-bottom: 8px;
-  background: rgba(255, 255, 255, 0.66);
-  border: 1px solid rgba(21, 25, 34, 0.11);
-  border-radius: 7px;
-}
-
-.loading-copy {
-  display: grid;
-  gap: 4px;
-
-  span {
-    color: #4a5260;
-    font-size: 12px;
-    font-weight: 850;
-    letter-spacing: 0;
-    text-transform: uppercase;
-  }
-
-  strong {
-    color: #151922;
-    font-size: 18px;
-    font-weight: 900;
-  }
-
-  p {
-    margin: 0;
-    color: #334155;
-    font-size: 14px;
-    font-weight: 700;
-  }
-}
-
-.loading-bar {
-  position: relative;
-  height: 5px;
-  margin-top: 16px;
-  overflow: hidden;
-  background: rgba(21, 25, 34, 0.12);
-  border-radius: 999px;
-
-  &::after {
-    position: absolute;
-    inset: 0;
-    width: 42%;
-    content: "";
-    background: #0e4d7f;
-    border-radius: inherit;
-    animation: loading-bar-sweep 1400ms ease-in-out infinite;
-  }
-}
-
-.skeleton-rows {
-  display: grid;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.skeleton-row {
-  display: grid;
-  grid-template-columns:
-    minmax(130px, 0.55fr)
-    minmax(230px, 1.15fr)
-    minmax(170px, 0.85fr)
-    minmax(190px, 0.9fr)
-    minmax(190px, 0.9fr);
-  gap: 8px;
-
-  span {
-    height: 62px;
-    background:
-      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.68), transparent),
-      rgba(255, 255, 255, 0.66);
-    background-size: 220px 100%, 100% 100%;
-    border: 1px solid rgba(21, 25, 34, 0.09);
-    border-radius: 7px;
-    animation: skeleton-sweep 1300ms ease-in-out infinite;
-  }
-}
-
 .empty-state {
   padding: 22px;
   color: #334155;
@@ -747,26 +666,6 @@
   }
 }
 
-@keyframes loading-bar-sweep {
-  from {
-    transform: translateX(-120%);
-  }
-
-  to {
-    transform: translateX(260%);
-  }
-}
-
-@keyframes skeleton-sweep {
-  from {
-    background-position: -220px 0, 0 0;
-  }
-
-  to {
-    background-position: calc(100% + 220px) 0, 0 0;
-  }
-}
-
 @media (max-width: 1050px) {
   .topbar,
   .overview-panels {
@@ -821,13 +720,5 @@
 
   .table-header span {
     display: none;
-  }
-
-  .skeleton-row {
-    grid-template-columns: 1fr;
-
-    span {
-      height: 44px;
-    }
   }
 }

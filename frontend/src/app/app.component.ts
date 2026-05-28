@@ -47,7 +47,6 @@ export class AppComponent implements OnInit {
   readonly errorMessage = signal('');
   readonly hoverDetail = signal<HoverState | null>(null);
   readonly sortMode = signal<SortMode>('issue');
-  readonly loadingSkeletonRows = Array.from({ length: 5 });
 
   filters: DashboardFilters = {
     serviceVersion: '',
@@ -96,7 +95,7 @@ export class AppComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Unable to refresh certification metrics.');
+        this.errorMessage.set('Unable to load dashboard data from the API.');
         this.loading.set(false);
       },
     });

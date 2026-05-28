@@ -65,10 +65,6 @@ function metric(label: string, value: string, status: ResultMetric['status']): R
   return { label, value, status };
 }
 
-function queryLatency(minMs: number, maxMs: number): number {
-  return Math.round(minMs + Math.random() * (maxMs - minMs));
-}
-
 function baseRows(): AtqRow[] {
   return [
     {
@@ -282,11 +278,11 @@ function dashboardFor(filters: DashboardFilters): DashboardPayload {
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   getDashboard(filters: DashboardFilters): Observable<DashboardPayload> {
-    return of(dashboardFor(filters)).pipe(delay(queryLatency(900, 1600)));
+    return of(dashboardFor(filters)).pipe(delay(120));
   }
 
   getActiveTicket(atqId: string): Observable<ActiveTicket | null> {
-    return of(childTickets()[atqId] ?? null).pipe(delay(queryLatency(450, 900)));
+    return of(childTickets()[atqId] ?? null).pipe(delay(120));
   }
 
   getTicketBundle(atqId: string, filters: DashboardFilters): Observable<TicketBundle> {
@@ -296,6 +292,6 @@ export class DashboardService {
     return of({
       masterTicket: masterTicket(row, buildVersion),
       childTicket: childTickets()[atqId] ?? null,
-    }).pipe(delay(queryLatency(550, 950)));
+    }).pipe(delay(120));
   }
 }
